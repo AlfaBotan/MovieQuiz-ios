@@ -27,6 +27,8 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -59,14 +61,17 @@ final class MovieQuizViewController: UIViewController {
             correctAnswers+=1
         } else {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
-
         }
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
         
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
            // код, который мы хотим вызвать через 1 секунду
             self.imageView.layer.borderWidth = 0
-           self.showNextQuestionOrResults()
+            self.showNextQuestionOrResults()
+            self.yesButton.isEnabled = true
+            self.noButton.isEnabled = true
         }
     }
     
@@ -107,13 +112,14 @@ final class MovieQuizViewController: UIViewController {
        self.present(alert, animated: true, completion: nil)
     }
     
-    @IBAction func yesButtonClicked(_ sender: UIButton) {
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let answer = true
         let correctAnswerCurrentQuestion = questions[currentQuestionIndex].correctAnswer
         showAnswerResult(isCorrect: answer == correctAnswerCurrentQuestion)
+     
     }
     
-    @IBAction func noButtonClicked(_ sender: UIButton) {
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
         let answer = false
         let correctAnswerCurrentQuestion = questions[currentQuestionIndex].correctAnswer
         showAnswerResult(isCorrect: answer == correctAnswerCurrentQuestion)
