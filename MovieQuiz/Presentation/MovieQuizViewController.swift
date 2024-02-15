@@ -1,9 +1,7 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
-    
-   
-    
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex = 0
@@ -11,7 +9,7 @@ final class MovieQuizViewController: UIViewController {
     private var correctAnswers = 0
     
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
    
     
@@ -24,17 +22,27 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-//        show(quiz: convert(model: questions[currentQuestionIndex]))
-        if let firstQuestion = questionFactory.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            let viewModel = convert(model: firstQuestion)
-            show(quiz: viewModel)
-        }
+        
+        questionFactory = QuestionFactory(delegate: self)
+
+        questionFactory?.requestNextQuestion()
     }
+    
+    // MARK: - QuestionFactoryDelegate
+
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else { return }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+                self?.show(quiz: viewModel)
+            }
+    }
+    
     
      //метод конвертации, который принимает моковый вопрос и возвращает вью модель для экрана вопроса
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        var quizStepViewModel = QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(),
+        let quizStepViewModel = QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(),
                                                question: model.text,
                                                questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)")
 
@@ -43,7 +51,6 @@ final class MovieQuizViewController: UIViewController {
     
     // приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
-       
         imageView.image = step.image
         counterLabel.text = step.questionNumber
         textLabel.text = step.question
@@ -85,14 +92,10 @@ final class MovieQuizViewController: UIViewController {
             }
         } else {
             currentQuestionIndex += 1
-            if let nextQuestion = questionFactory.requestNextQuestion() {
-                currentQuestion = nextQuestion
-                let viewModel = convert(model: nextQuestion)
-
-                show(quiz: viewModel)
+            questionFactory?.requestNextQuestion()
             }
         }
-    }
+    
     
     // приватный метод для показа результатов раунда квиза
     // принимает вью модель QuizResultsViewModel и ничего не возвращает
@@ -116,14 +119,14 @@ final class MovieQuizViewController: UIViewController {
        self.present(alert, animated: true, completion: nil)
     }
     
+    // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let answer = true
-//        let correctAnswerCurrentQuestion = questions[currentQuestionIndex].correctAnswer
+
         guard let currentQuestion = currentQuestion else {
             return
         }
         
-//        showAnswerResult(isCorrect: answer == correctAnswerCurrentQuestion)
         showAnswerResult(isCorrect: answer == currentQuestion.correctAnswer)
 
      
@@ -131,20 +134,13 @@ final class MovieQuizViewController: UIViewController {
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         let answer = false
-//        let correctAnswerCurrentQuestion = questions[currentQuestionIndex].correctAnswer
         guard let currentQuestion = currentQuestion else {
             return
         }
-//        showAnswerResult(isCorrect: answer == correctAnswerCurrentQuestion)
         showAnswerResult(isCorrect: answer == currentQuestion.correctAnswer)
     }
     
 }
-
-
-
-
-// для состояния "Результат квиза"
 
 /*
  Mock-данные

@@ -5,4 +5,10 @@
 //  Created by Илья Волощик on 14.02.24.
 //
 
-import Foundation
+import UIKit
+
+protocol QuestionFactoryDelegate: AnyObject {
+    
+    func didReceiveNextQuestion(question: QuizQuestion?)
+
+}
