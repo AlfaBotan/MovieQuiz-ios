@@ -19,5 +19,18 @@ class AlertPresenter: AlertPresenterProtocol{
         }
         alert.addAction(action)
         delegate?.didShow(alert: alert)
+        
+        // MARK: - вопрос наставнку либо ревьюеру, есть ли смысл вызывать презент отсюда? просто тогда метод который должен быть реализован по протоколу делегата во вью контроллере останется пустым.
+
+//        // Получаем активную сцену
+//                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+//                    // Получаем окно сцены и корневой контроллер
+//                    if let window = scene.windows.first, 
+//                       let rootViewController = window.rootViewController {
+//                        rootViewController.present(alert, animated: true, completion: nil)
+//                    }
+//                }
+
+
     }
 }

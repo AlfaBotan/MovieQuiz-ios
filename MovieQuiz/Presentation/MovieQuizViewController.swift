@@ -10,6 +10,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private var questionFactory: QuestionFactoryProtocol?
     
     private var alertPresenter: AlertPresenterProtocol?
+    
+    private var statisticService: StatisticService?
    
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
@@ -28,6 +30,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         alertPresenter = AlertPresenter()
         alertPresenter?.delegate = self
         
+        statisticService = StatisticServiceImplementation()
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -86,9 +89,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-            
-            alertPresenter?.createAlert(model: AlertModel(title: "Этот раунд окончен",
-                                                      message: "Ваш результат: \(correctAnswers)/10",
+            statisticService?.plusOneGameCount()
+            guard let gamesCount = statisticService?.gamesCount else {return}
+            statisticService?.store(correct: correctAnswers, total: questionsAmount)
+            guard let bestGame = statisticService?.bestGame else {return}
+            statisticService?.setTotalAccyracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
+            guard let totalAccuracy = statisticService?.totalAccuracy else {return}
+            alertPresenter?.createAlert(model: AlertModel(title: "Этот раунд окончен!",
+                                                          message: "Ваш результат: \(correctAnswers)/10 \n Количество сыгранных квизов \(gamesCount) \n Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString)) \n Средяя точность: \(String(format: "%.2f", totalAccuracy))%",
                                                       buttonText: "Сыграть ещё раз",
                                                       completionClosure: {  [weak self]  in
                 guard let self = self else { return }
