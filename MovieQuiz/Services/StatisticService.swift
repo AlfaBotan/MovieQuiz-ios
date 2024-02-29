@@ -16,8 +16,8 @@ struct GameRecord: Codable {
     let date: Date
     
     func isBetterThan(_ another: GameRecord) -> Bool {
-            return correct > another.correct
-        }
+        return correct > another.correct
+    }
     
 }
 
@@ -30,7 +30,7 @@ protocol StatisticService {
     
     func store(correct count: Int, total amount: Int)
     func plusOneGameCount()
-    func setTotalAccyracy( correctAnswers: Int, gamesCount: Int)
+    func setTotalAccuracy( correctAnswers: Int, gamesCount: Int)
 }
 
 
@@ -112,7 +112,7 @@ final class StatisticServiceImplementation: StatisticService {
     // MARK: - Открытые методы класса, для работы с приватными сеттерами свойств
     
     func store(correct count: Int, total amount: Int) {
-       
+        
         let newGameRecord = GameRecord(correct: count, total: amount, date: Date())
         if !bestGame.isBetterThan(newGameRecord) {
             guard let data = try? JSONEncoder().encode(newGameRecord) else {
@@ -128,7 +128,8 @@ final class StatisticServiceImplementation: StatisticService {
         gamesCount+=1
     }
     
-    func setTotalAccyracy( correctAnswers: Int, gamesCount: Int) {
+    func setTotalAccuracy( correctAnswers: Int, gamesCount: Int) {
+        guard gamesCount != 0 else {return}
         var newTotalAccyracy: Double = Double(correctAnswers) * 10
         let oldTotalAccuracy = totalAccuracy * Double(gamesCount-1)
         newTotalAccyracy = (newTotalAccyracy + oldTotalAccuracy) / Double(gamesCount)

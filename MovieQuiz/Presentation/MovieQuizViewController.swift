@@ -4,15 +4,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private var currentQuestion: QuizQuestion?
     private let questionsAmount: Int = 10
     
     private var questionFactory: QuestionFactoryProtocol?
-    
     private var alertPresenter: AlertPresenterProtocol?
-    
     private var statisticService: StatisticService?
-   
+    private var currentQuestion: QuizQuestion?
+
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -93,10 +91,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             guard let gamesCount = statisticService?.gamesCount else {return}
             statisticService?.store(correct: correctAnswers, total: questionsAmount)
             guard let bestGame = statisticService?.bestGame else {return}
-            statisticService?.setTotalAccyracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
+            statisticService?.setTotalAccuracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
             guard let totalAccuracy = statisticService?.totalAccuracy else {return}
             alertPresenter?.createAlert(model: AlertModel(title: "Этот раунд окончен!",
-                                                          message: "Ваш результат: \(correctAnswers)/10 \n Количество сыгранных квизов \(gamesCount) \n Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString)) \n Средяя точность: \(String(format: "%.2f", totalAccuracy))%",
+                                                          message: """
+                                                      Ваш результат: \(correctAnswers)/10
+                                                      Количество сыгранных квизов \(gamesCount)
+                                                      Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
+                                                      Средяя точность: \(String(format: "%.2f", totalAccuracy))%
+                                                      """,
                                                       buttonText: "Сыграть ещё раз",
                                                       completionClosure: {  [weak self]  in
                 guard let self = self else { return }

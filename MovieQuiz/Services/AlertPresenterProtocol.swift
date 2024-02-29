@@ -9,8 +9,7 @@ import UIKit
 
 protocol AlertPresenterProtocol {
     
-    func createAlert( model: AlertModel)
-    
     var delegate: AlertPresenterDelegate? {get set}
     
+    func createAlert( model: AlertModel)
 }

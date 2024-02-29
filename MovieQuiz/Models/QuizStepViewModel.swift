@@ -9,7 +9,6 @@ import UIKit
 
 struct QuizStepViewModel {
     
- 
     var image: UIImage
   
     var question: String
