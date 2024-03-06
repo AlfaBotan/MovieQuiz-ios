@@ -6,6 +6,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <customFonts key="customFonts">
@@ -105,17 +106,24 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="zwn-Ck-avD">
+                                <rect key="frame" x="178" y="407.66666666666669" width="37" height="37"/>
+                                <color key="color" systemColor="linkColor"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="WgR-PT-lmM" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="OHZ-Q9-Be2"/>
+                            <constraint firstItem="zwn-Ck-avD" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Rmb-Hi-a8L"/>
+                            <constraint firstItem="zwn-Ck-avD" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="aaT-yg-7Sk"/>
                             <constraint firstItem="WgR-PT-lmM" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="oIf-0X-s1u"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="WgR-PT-lmM" secondAttribute="trailing" constant="20" id="thl-5D-ILR"/>
                             <constraint firstItem="WgR-PT-lmM" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="wSk-1s-Ukc"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="zwn-Ck-avD" id="7hL-7l-1qp"/>
                         <outlet property="counterLabel" destination="rDZ-U0-M4e" id="3Oz-vs-eMb"/>
                         <outlet property="imageView" destination="mOX-9r-blZ" id="kHt-pc-QAW"/>
                         <outlet property="noButton" destination="V84-84-jie" id="l73-ke-dGV"/>
@@ -135,5 +143,8 @@
         <namedColor name="YP White">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="linkColor">
+            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
     </resources>
 </document>
