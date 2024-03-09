@@ -1,6 +1,8 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
+   
+    
     
     
     
@@ -47,12 +49,44 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
         questionFactory?.requestNextQuestion()
     }
     
     func didFailToLoadData(with error: Error) {
         showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didFailToLoadImage() {
+        let alert = UIAlertController(title: "Ошибка!", message: "Не удалось загрузить изображение", preferredStyle: .alert)
+        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
+            guard let self = self else {return}
+            self.showLoadingIndicator()
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func didFailToLoadData_invalidAPIKey() {
+        let alert = UIAlertController(title: "Не удалось загрузить данные!",
+                                      message: """
+                                      Причины по которым это могло произойти:
+                                      
+                                      API key неверный
+                                      API key просрочен
+                                      количество запросов в день превышено
+                                      """,
+                                      preferredStyle: .alert)
+        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
+            guard let self = self else {return}
+            self.showLoadingIndicator()
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
     }
     
     // MARK: - AlertPresenterDelegate

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class QuestionFactory: QuestionFactoryProtocol {
+final class QuestionFactory: QuestionFactoryProtocol {
     
     internal weak var delegate: QuestionFactoryDelegate?
     private let moviesLoader: MoviesLoading
@@ -28,6 +28,11 @@ class QuestionFactory: QuestionFactoryProtocol {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
                 print("Failed to load image")
+                
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.didFailToLoadImage()
+                }
             }
             
             let rating = Float(movie.rating) ?? 0
@@ -52,8 +57,12 @@ class QuestionFactory: QuestionFactoryProtocol {
                 guard let self = self else { return }
                 switch result {
                 case .success(let mostPopularMovies):
-                    self.movies = mostPopularMovies.items
-                    self.delegate?.didLoadDataFromServer()
+                    if mostPopularMovies.items.isEmpty && !mostPopularMovies.errorMessage.isEmpty {
+                        self.delegate?.didFailToLoadData_invalidAPIKey()
+                              } else {
+                                self.movies = mostPopularMovies.items
+                                self.delegate?.didLoadDataFromServer()
+                              }
                 case .failure(let error):
                     self.delegate?.didFailToLoadData(with: error)
                 }
