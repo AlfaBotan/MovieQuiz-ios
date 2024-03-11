@@ -1,7 +1,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
-    
+
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
@@ -10,7 +10,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private var alertPresenter: AlertPresenterProtocol?
     private var statisticService: StatisticService?
     private var currentQuestion: QuizQuestion?
-
+    private var moviesLoader: MoviesLoader?
+    
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -20,26 +22,75 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        showLoadingIndicator()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        statisticService = StatisticServiceImplementation()
         
-        questionFactory = QuestionFactory()
-        questionFactory?.delegate = self
-        questionFactory?.requestNextQuestion()
+        questionFactory?.loadData()
         
         alertPresenter = AlertPresenter()
         alertPresenter?.delegate = self
         
-        statisticService = StatisticServiceImplementation()
     }
     
     // MARK: - QuestionFactoryDelegate
-
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
-                self?.show(quiz: viewModel)
-            }
+            self?.show(quiz: viewModel)
+        }
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.stopAnimating()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didFailToLoadImage() {
+        let alert = UIAlertController(
+                    title: "Ошибка!",
+                    message: "Не удалось загрузить изображение",
+                    preferredStyle: .alert
+                )
+
+                let action = UIAlertAction(
+                    title: "Начать заново",
+                    style: .default
+                ) { [weak self] _ in
+                    guard let self = self else {return}
+                    self.showLoadingIndicator()
+                    questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+                    questionFactory?.loadData()
+                }
+                alert.addAction(action)
+                self.present(alert, animated: true, completion: nil)
+    }
+    
+    func didFailToLoadDataInvalidApiKey() {
+        let alert = UIAlertController(title: "Не удалось загрузить данные!",
+                                      message: """
+                                      Причины по которым это могло произойти:
+                                      
+                                      API key неверный
+                                      API key просрочен
+                                      количество запросов в день превышено
+                                      """,
+                                      preferredStyle: .alert)
+        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
+            guard let self = self else {return}
+            self.showLoadingIndicator()
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
     }
     
     // MARK: - AlertPresenterDelegate
@@ -51,10 +102,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - Private Functions
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let quizStepViewModel = QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(),
+        let quizStepViewModel = QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
                                                   question: model.text,
                                                   questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)")
-
         return quizStepViewModel
     }
     
@@ -100,23 +150,45 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                                                       Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
                                                       Средяя точность: \(String(format: "%.2f", totalAccuracy))%
                                                       """,
-                                                      buttonText: "Сыграть ещё раз",
-                                                      completionClosure: {  [weak self]  in
+                                                          buttonText: "Сыграть ещё раз",
+                                                          completionClosure: {  [weak self]  in
                 guard let self = self else { return }
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-
-                questionFactory = QuestionFactory()
-                questionFactory?.delegate = self
-                questionFactory?.requestNextQuestion()
                 
+                questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+                questionFactory?.loadData()
             }))
         } else {
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
-            }
         }
-
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.stopAnimating()
+    }
+    
+    private func showNetworkError(message: String) {
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") {  [weak self]  in
+            guard let self = self else { return }
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+            
+        }
+        alertPresenter?.createAlert(model: model)
+    }
+    
     // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let answer = true
@@ -134,67 +206,3 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         showAnswerResult(isCorrect: answer == currentQuestion.correctAnswer)
     }
 }
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- */
