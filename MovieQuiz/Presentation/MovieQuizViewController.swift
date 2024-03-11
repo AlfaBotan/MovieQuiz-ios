@@ -1,11 +1,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
-   
-    
-    
-    
-    
+
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
@@ -58,18 +54,26 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     func didFailToLoadImage() {
-        let alert = UIAlertController(title: "Ошибка!", message: "Не удалось загрузить изображение", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
-            guard let self = self else {return}
-            self.showLoadingIndicator()
-            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-            questionFactory?.loadData()
-        }
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+        let alert = UIAlertController(
+                    title: "Ошибка!",
+                    message: "Не удалось загрузить изображение",
+                    preferredStyle: .alert
+                )
+
+                let action = UIAlertAction(
+                    title: "Начать заново",
+                    style: .default
+                ) { [weak self] _ in
+                    guard let self = self else {return}
+                    self.showLoadingIndicator()
+                    questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+                    questionFactory?.loadData()
+                }
+                alert.addAction(action)
+                self.present(alert, animated: true, completion: nil)
     }
     
-    func didFailToLoadData_invalidAPIKey() {
+    func didFailToLoadDataInvalidApiKey() {
         let alert = UIAlertController(title: "Не удалось загрузить данные!",
                                       message: """
                                       Причины по которым это могло произойти:
@@ -101,7 +105,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         let quizStepViewModel = QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
                                                   question: model.text,
                                                   questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)")
-        
         return quizStepViewModel
     }
     
@@ -163,17 +166,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     private func showLoadingIndicator() {
-        
         activityIndicator.startAnimating()
     }
     
     private func hideLoadingIndicator() {
-        
         activityIndicator.stopAnimating()
     }
     
     private func showNetworkError(message: String) {
-        
         
         let model = AlertModel(title: "Ошибка",
                                message: message,
@@ -187,8 +187,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             
         }
         alertPresenter?.createAlert(model: model)
-        
-        
     }
     
     // MARK: - Actions

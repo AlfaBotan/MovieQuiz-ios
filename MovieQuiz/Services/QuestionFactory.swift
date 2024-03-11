@@ -58,11 +58,11 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 switch result {
                 case .success(let mostPopularMovies):
                     if mostPopularMovies.items.isEmpty && !mostPopularMovies.errorMessage.isEmpty {
-                        self.delegate?.didFailToLoadData_invalidAPIKey()
-                              } else {
-                                self.movies = mostPopularMovies.items
-                                self.delegate?.didLoadDataFromServer()
-                              }
+                        self.delegate?.didFailToLoadDataInvalidApiKey()
+                    } else {
+                        self.movies = mostPopularMovies.items
+                        self.delegate?.didLoadDataFromServer()
+                    }
                 case .failure(let error):
                     self.delegate?.didFailToLoadData(with: error)
                 }

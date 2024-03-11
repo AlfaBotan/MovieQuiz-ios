@@ -13,5 +13,5 @@ protocol QuestionFactoryDelegate: AnyObject {
     func didLoadDataFromServer()
     func didFailToLoadData(with error: Error)
     func didFailToLoadImage()
-    func didFailToLoadData_invalidAPIKey()
+    func didFailToLoadDataInvalidApiKey()
 }
