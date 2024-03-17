@@ -2,16 +2,15 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
 
-    private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let questionsAmount: Int = 10
     
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenterProtocol?
     private var statisticService: StatisticService?
     private var currentQuestion: QuizQuestion?
     private var moviesLoader: MoviesLoader?
-    
+    private let presenter = MovieQuizPresenter()
+
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
@@ -38,7 +37,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
@@ -101,13 +100,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     // MARK: - Private Functions
     
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let quizStepViewModel = QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
-                                                  question: model.text,
-                                                  questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)")
-        return quizStepViewModel
-    }
-    
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         counterLabel.text = step.questionNumber
@@ -136,10 +128,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             statisticService?.plusOneGameCount()
             guard let gamesCount = statisticService?.gamesCount else {return}
-            statisticService?.store(correct: correctAnswers, total: questionsAmount)
+            statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
             guard let bestGame = statisticService?.bestGame else {return}
             statisticService?.setTotalAccuracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
             guard let totalAccuracy = statisticService?.totalAccuracy else {return}
@@ -153,14 +145,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                                                           buttonText: "Сыграть ещё раз",
                                                           completionClosure: {  [weak self]  in
                 guard let self = self else { return }
-                self.currentQuestionIndex = 0
+                presenter.resetQuestionIndex()
                 self.correctAnswers = 0
                 
                 questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
                 questionFactory?.loadData()
             }))
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
         }
     }
@@ -179,7 +171,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                                message: message,
                                buttonText: "Попробовать еще раз") {  [weak self]  in
             guard let self = self else { return }
-            self.currentQuestionIndex = 0
+            presenter.resetQuestionIndex()
             self.correctAnswers = 0
             
             questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
