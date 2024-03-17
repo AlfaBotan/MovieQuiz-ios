@@ -169,8 +169,8 @@
 			children = (
 				AD1ABAB52831907B00B3E448 /* MovieQuizViewController.swift */,
 				1CC2A7082B7E4861003ED088 /* AlertPresenter.swift */,
-				AD1ABAB72831907B00B3E448 /* Main.storyboard */,
 				1CEB63622BA73AD200E22551 /* MovieQuizPresenter.swift */,
+				AD1ABAB72831907B00B3E448 /* Main.storyboard */,
 			);
 			path = Presentation;
 			sourceTree = "<group>";

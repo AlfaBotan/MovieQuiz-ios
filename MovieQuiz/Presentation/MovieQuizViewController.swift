@@ -2,7 +2,7 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
 
-    private var correctAnswers = 0
+//    private var correctAnswers = 0
     private var questionFactory: QuestionFactoryProtocol?
     
     private var alertPresenter: AlertPresenterProtocol?
@@ -107,7 +107,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         imageView.layer.borderWidth = 8
         if isCorrect {
             imageView.layer.borderColor = UIColor.ypGreen.cgColor
-            correctAnswers+=1
+            presenter.didCorrectAnswer()
         } else {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
@@ -117,9 +117,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.imageView.layer.borderWidth = 0
-            self.presenter.correctAnswers = self.correctAnswers
+            
             self.presenter.questionFactory = self.questionFactory
             self.presenter.showNextQuestionOrResults()
+            
             self.yesButton.isEnabled = true
             self.noButton.isEnabled = true
         }
@@ -141,22 +142,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                            """,
                                buttonText: "Сыграть ещё раз") {  [weak self]  in
             guard let self = self else { return }
-            presenter.resetQuestionIndex()
-            self.correctAnswers = 0
+            presenter.restartGame()
 
             questionFactory?.requestNextQuestion()
         }
         alertPresenter?.createAlert(model: model)
     }
-    
-//    private func showNextQuestionOrResults() {
-//        if presenter.isLastQuestion() {
-//            showResult(correctAnswers: correctAnswers)
-//        } else {
-//            presenter.switchToNextQuestion()
-//            questionFactory?.requestNextQuestion()
-//        }
-//    }
     
     private func showLoadingIndicator() {
         activityIndicator.startAnimating()
@@ -172,8 +163,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                                message: message,
                                buttonText: "Попробовать еще раз") {  [weak self]  in
             guard let self = self else { return }
-            presenter.resetQuestionIndex()
-            self.correctAnswers = 0
+            presenter.restartGame()
             
             questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
             questionFactory?.loadData()
