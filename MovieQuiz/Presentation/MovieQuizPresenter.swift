@@ -7,17 +7,24 @@
 
 import UIKit
 
-final class MovieQuizPresenter {
-    
-     var questionFactory: QuestionFactoryProtocol?
-     var correctAnswers = 0
+final class MovieQuizPresenter: QuestionFactoryDelegate {
 
-    
+    var correctAnswers = 0
     private var currentQuestionIndex: Int = 0
     let questionsAmount: Int = 10
+    
     var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
-
+    private var questionFactory: QuestionFactoryProtocol?
+    private weak var viewController: MovieQuizViewController?
+    
+    init(viewController: MovieQuizViewController) {
+            self.viewController = viewController
+            
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+            viewController.showLoadingIndicator()
+        }
+    
      func convert(model: QuizQuestion) -> QuizStepViewModel {
         QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
@@ -29,18 +36,58 @@ final class MovieQuizPresenter {
           currentQuestionIndex == questionsAmount - 1
       }
       
-      func restartGame() {
+    func restartGame() {
           currentQuestionIndex = 0
           correctAnswers = 0
+          questionFactory?.requestNextQuestion()
       }
       
-      func switchToNextQuestion() {
+    func switchToNextQuestion() {
           currentQuestionIndex += 1
       }
     
     func didCorrectAnswer() {
             correctAnswers += 1
     }
+    
+    func showNextQuestionOrResults() {
+       if isLastQuestion() {
+           viewController?.showResult(correctAnswers: correctAnswers)
+       } else {
+           switchToNextQuestion()
+           questionFactory?.requestNextQuestion()
+       }
+   }
+    
+    // MARK: - QuestionFactoryDelegate
+
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: any Error) {
+        let message = error.localizedDescription
+        viewController?.showNetworkError(message: message)
+    }
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else { return }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+//    func didFailToLoadImage() {
+//        <#code#>
+//    }
+//    
+//    func didFailToLoadDataInvalidApiKey() {
+//        <#code#>
+//    }
     
     // MARK: - Actions
     func yesButtonClicked() {
@@ -57,23 +104,5 @@ final class MovieQuizPresenter {
             return
         }
             viewController?.showAnswerResult(isCorrect: answer == currentQuestion.correctAnswer)       
-    }
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else { return }
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-        }
-    }
-    
-     func showNextQuestionOrResults() {
-        if isLastQuestion() {
-            viewController?.showResult(correctAnswers: correctAnswers)
-        } else {
-            switchToNextQuestion()
-            questionFactory?.requestNextQuestion()
-        }
     }
 }

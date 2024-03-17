@@ -1,14 +1,13 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
 
-//    private var correctAnswers = 0
-    private var questionFactory: QuestionFactoryProtocol?
     
     private var alertPresenter: AlertPresenterProtocol?
     private var statisticService: StatisticService?
     private var moviesLoader: MoviesLoader?
-    private let presenter = MovieQuizPresenter()
+    
+    private var presenter: MovieQuizPresenter!
 
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet private weak var imageView: UIImageView!
@@ -20,13 +19,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        presenter.viewController = self
-        
+        presenter = MovieQuizPresenter(viewController: self)
+
         showLoadingIndicator()
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         statisticService = StatisticServiceImplementation()
         
-        questionFactory?.loadData()
         
         alertPresenter = AlertPresenter()
         alertPresenter?.delegate = self
@@ -35,58 +32,45 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     // MARK: - QuestionFactoryDelegate
     
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
     
-    func didLoadDataFromServer() {
-        activityIndicator.stopAnimating()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
-    
-    func didFailToLoadImage() {
-        let alert = UIAlertController(
-                    title: "Ошибка!",
-                    message: "Не удалось загрузить изображение",
-                    preferredStyle: .alert
-                )
-
-                let action = UIAlertAction(
-                    title: "Начать заново",
-                    style: .default
-                ) { [weak self] _ in
-                    guard let self = self else {return}
-                    self.showLoadingIndicator()
-                    questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-                    questionFactory?.loadData()
-                }
-                alert.addAction(action)
-                self.present(alert, animated: true, completion: nil)
-    }
-    
-    func didFailToLoadDataInvalidApiKey() {
-        let alert = UIAlertController(title: "Не удалось загрузить данные!",
-                                      message: """
-                                      Причины по которым это могло произойти:
-                                      
-                                      API key неверный
-                                      API key просрочен
-                                      количество запросов в день превышено
-                                      """,
-                                      preferredStyle: .alert)
-        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
-            guard let self = self else {return}
-            self.showLoadingIndicator()
-            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-            questionFactory?.loadData()
-        }
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
-    }
+//    func didFailToLoadImage() {
+//        let alert = UIAlertController(
+//                    title: "Ошибка!",
+//                    message: "Не удалось загрузить изображение",
+//                    preferredStyle: .alert
+//                )
+//
+//                let action = UIAlertAction(
+//                    title: "Начать заново",
+//                    style: .default
+//                ) { [weak self] _ in
+//                    guard let self = self else {return}
+//                    self.showLoadingIndicator()
+//                    questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+//                    questionFactory?.loadData()
+//                }
+//                alert.addAction(action)
+//                self.present(alert, animated: true, completion: nil)
+//    }
+//    
+//    func didFailToLoadDataInvalidApiKey() {
+//        let alert = UIAlertController(title: "Не удалось загрузить данные!",
+//                                      message: """
+//                                      Причины по которым это могло произойти:
+//                                      
+//                                      API key неверный
+//                                      API key просрочен
+//                                      количество запросов в день превышено
+//                                      """,
+//                                      preferredStyle: .alert)
+//        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
+//            guard let self = self else {return}
+//            self.showLoadingIndicator()
+//                self.presenter.questionFactory?.loadData()
+//        }
+//        alert.addAction(action)
+//        self.present(alert, animated: true, completion: nil)
+//    }
     
     // MARK: - AlertPresenterDelegate
     func didShow(alert: UIAlertController?) {
@@ -118,7 +102,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             guard let self = self else { return }
             self.imageView.layer.borderWidth = 0
             
-            self.presenter.questionFactory = self.questionFactory
             self.presenter.showNextQuestionOrResults()
             
             self.yesButton.isEnabled = true
@@ -142,36 +125,31 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                            """,
                                buttonText: "Сыграть ещё раз") {  [weak self]  in
             guard let self = self else { return }
-            presenter.restartGame()
-
-            questionFactory?.requestNextQuestion()
+            self.presenter.restartGame()
         }
         alertPresenter?.createAlert(model: model)
     }
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.startAnimating()
     }
     
-    private func hideLoadingIndicator() {
+     func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
     }
     
-    private func showNetworkError(message: String) {
+     func showNetworkError(message: String) {
         
         let model = AlertModel(title: "Ошибка",
                                message: message,
                                buttonText: "Попробовать еще раз") {  [weak self]  in
             guard let self = self else { return }
-            presenter.restartGame()
-            
-            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-            questionFactory?.loadData()
-            
+                self.presenter.restartGame()
         }
         alertPresenter?.createAlert(model: model)
     }
     
+
     // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         presenter.yesButtonClicked()
