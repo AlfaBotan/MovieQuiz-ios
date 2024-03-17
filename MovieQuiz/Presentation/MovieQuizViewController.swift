@@ -123,30 +123,33 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         }
     }
     
+    private func showResult() {
+        statisticService?.plusOneGameCount()
+        guard let gamesCount = statisticService?.gamesCount else {return}
+        statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
+        guard let bestGame = statisticService?.bestGame else {return}
+        statisticService?.setTotalAccuracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
+        guard let totalAccuracy = statisticService?.totalAccuracy else {return}
+        let model = AlertModel(title: "Этот раунд окончен!",
+                               message: """
+                           Ваш результат: \(correctAnswers)/10
+                           Количество сыгранных квизов \(gamesCount)
+                           Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
+                           Средяя точность: \(String(format: "%.2f", totalAccuracy))%
+                           """,
+                               buttonText: "Сыграть ещё раз") {  [weak self]  in
+            guard let self = self else { return }
+            presenter.resetQuestionIndex()
+            self.correctAnswers = 0
+
+            questionFactory?.requestNextQuestion()
+        }
+        alertPresenter?.createAlert(model: model)
+    }
+    
     private func showNextQuestionOrResults() {
         if presenter.isLastQuestion() {
-            statisticService?.plusOneGameCount()
-            guard let gamesCount = statisticService?.gamesCount else {return}
-            statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
-            guard let bestGame = statisticService?.bestGame else {return}
-            statisticService?.setTotalAccuracy(correctAnswers: correctAnswers, gamesCount: gamesCount)
-            guard let totalAccuracy = statisticService?.totalAccuracy else {return}
-            alertPresenter?.createAlert(model: AlertModel(title: "Этот раунд окончен!",
-                                                          message: """
-                                                      Ваш результат: \(correctAnswers)/10
-                                                      Количество сыгранных квизов \(gamesCount)
-                                                      Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
-                                                      Средяя точность: \(String(format: "%.2f", totalAccuracy))%
-                                                      """,
-                                                          buttonText: "Сыграть ещё раз",
-                                                          completionClosure: {  [weak self]  in
-                guard let self = self else { return }
-                presenter.resetQuestionIndex()
-                self.correctAnswers = 0
-                
-                questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-                questionFactory?.loadData()
-            }))
+            showResult()
         } else {
             presenter.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
