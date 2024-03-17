@@ -9,6 +9,10 @@ import UIKit
 
 final class MovieQuizPresenter {
     
+     var questionFactory: QuestionFactoryProtocol?
+     var correctAnswers = 0
+
+    
     private var currentQuestionIndex: Int = 0
     let questionsAmount: Int = 10
     var currentQuestion: QuizQuestion?
@@ -56,6 +60,15 @@ final class MovieQuizPresenter {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+     func showNextQuestionOrResults() {
+        if isLastQuestion() {
+            viewController?.showResult(correctAnswers: correctAnswers)
+        } else {
+            switchToNextQuestion()
+            questionFactory?.requestNextQuestion()
         }
     }
 }

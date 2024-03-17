@@ -3,8 +3,8 @@ import UIKit
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
 
     private var correctAnswers = 0
-    
     private var questionFactory: QuestionFactoryProtocol?
+    
     private var alertPresenter: AlertPresenterProtocol?
     private var statisticService: StatisticService?
     private var moviesLoader: MoviesLoader?
@@ -117,13 +117,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.imageView.layer.borderWidth = 0
-            self.showNextQuestionOrResults()
+            self.presenter.correctAnswers = self.correctAnswers
+            self.presenter.questionFactory = self.questionFactory
+            self.presenter.showNextQuestionOrResults()
             self.yesButton.isEnabled = true
             self.noButton.isEnabled = true
         }
     }
     
-    private func showResult() {
+    func showResult(correctAnswers: Int) {
         statisticService?.plusOneGameCount()
         guard let gamesCount = statisticService?.gamesCount else {return}
         statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
@@ -147,14 +149,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         alertPresenter?.createAlert(model: model)
     }
     
-    private func showNextQuestionOrResults() {
-        if presenter.isLastQuestion() {
-            showResult()
-        } else {
-            presenter.switchToNextQuestion()
-            questionFactory?.requestNextQuestion()
-        }
-    }
+//    private func showNextQuestionOrResults() {
+//        if presenter.isLastQuestion() {
+//            showResult(correctAnswers: correctAnswers)
+//        } else {
+//            presenter.switchToNextQuestion()
+//            questionFactory?.requestNextQuestion()
+//        }
+//    }
     
     private func showLoadingIndicator() {
         activityIndicator.startAnimating()
