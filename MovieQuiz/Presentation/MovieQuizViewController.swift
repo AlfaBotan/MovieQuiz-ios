@@ -30,47 +30,15 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         
     }
     
-    // MARK: - QuestionFactoryDelegate
+    // MARK: - вызов алертов для одноименных ошибок
     
+    func didFailToLoadImageShow(alert: UIAlertController) {
+                self.present(alert, animated: true, completion: nil)
+    }
     
-//    func didFailToLoadImage() {
-//        let alert = UIAlertController(
-//                    title: "Ошибка!",
-//                    message: "Не удалось загрузить изображение",
-//                    preferredStyle: .alert
-//                )
-//
-//                let action = UIAlertAction(
-//                    title: "Начать заново",
-//                    style: .default
-//                ) { [weak self] _ in
-//                    guard let self = self else {return}
-//                    self.showLoadingIndicator()
-//                    questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-//                    questionFactory?.loadData()
-//                }
-//                alert.addAction(action)
-//                self.present(alert, animated: true, completion: nil)
-//    }
-//    
-//    func didFailToLoadDataInvalidApiKey() {
-//        let alert = UIAlertController(title: "Не удалось загрузить данные!",
-//                                      message: """
-//                                      Причины по которым это могло произойти:
-//                                      
-//                                      API key неверный
-//                                      API key просрочен
-//                                      количество запросов в день превышено
-//                                      """,
-//                                      preferredStyle: .alert)
-//        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
-//            guard let self = self else {return}
-//            self.showLoadingIndicator()
-//                self.presenter.questionFactory?.loadData()
-//        }
-//        alert.addAction(action)
-//        self.present(alert, animated: true, completion: nil)
-//    }
+    func didFailToLoadDataInvalidApiKeyShow(alert: UIAlertController) {
+        self.present(alert, animated: true, completion: nil)
+    }
     
     // MARK: - AlertPresenterDelegate
     func didShow(alert: UIAlertController?) {

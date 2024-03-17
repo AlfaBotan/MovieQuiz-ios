@@ -59,6 +59,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
        }
    }
     
+    
     // MARK: - QuestionFactoryDelegate
 
     
@@ -81,13 +82,43 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-//    func didFailToLoadImage() {
-//        <#code#>
-//    }
-//    
-//    func didFailToLoadDataInvalidApiKey() {
-//        <#code#>
-//    }
+    func didFailToLoadImage() {
+        let alert = UIAlertController(
+                    title: "Ошибка!",
+                    message: "Не удалось загрузить изображение",
+                    preferredStyle: .alert
+                )
+
+                let action = UIAlertAction(
+                    title: "Начать заново",
+                    style: .default
+                ) { [weak self] _ in
+                    guard let self = self else {return}
+                    self.viewController?.showLoadingIndicator()
+                    self.questionFactory?.loadData()
+                }
+                alert.addAction(action)
+        viewController?.didFailToLoadImageShow(alert: alert)
+    }
+    
+    func didFailToLoadDataInvalidApiKey() {
+        let alert = UIAlertController(title: "Не удалось загрузить данные!",
+                                      message: """
+                                      Причины по которым это могло произойти:
+                                      
+                                      API key неверный
+                                      API key просрочен
+                                      количество запросов в день превышено
+                                      """,
+                                      preferredStyle: .alert)
+        let action = UIAlertAction(title: "Начать заново", style: .default) { [weak self] _ in
+            guard let self = self else {return}
+            self.viewController?.showLoadingIndicator()
+            self.questionFactory?.loadData()
+        }
+        alert.addAction(action)
+        viewController?.didFailToLoadDataInvalidApiKeyShow(alert: alert)
+    }
     
     // MARK: - Actions
     func yesButtonClicked() {

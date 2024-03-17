@@ -29,10 +29,10 @@ final class QuestionFactory: QuestionFactoryProtocol {
             } catch {
                 print("Failed to load image")
                 
-//                DispatchQueue.main.async { [weak self] in
-//                    guard let self = self else { return }
-//                    self.delegate?.didFailToLoadImage()
-//                }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.didFailToLoadImage()
+                }
             }
             
             let rating = Float(movie.rating) ?? 0
@@ -58,7 +58,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 switch result {
                 case .success(let mostPopularMovies):
                     if mostPopularMovies.items.isEmpty && !mostPopularMovies.errorMessage.isEmpty {
-//                        self.delegate?.didFailToLoadDataInvalidApiKey()
+                        self.delegate?.didFailToLoadDataInvalidApiKey()
                     } else {
                         self.movies = mostPopularMovies.items
                         self.delegate?.didLoadDataFromServer()
