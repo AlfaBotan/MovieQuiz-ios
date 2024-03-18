@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, AlertPresenterDelegate, MovieQuizViewControllerProtocol {
 
     
     private var alertPresenter: AlertPresenterProtocol?
@@ -28,7 +28,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     // MARK: - вызов алертов для одноименных ошибок
     
     func didFailToLoadImageShow(alert: UIAlertController) {
-                self.present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: nil)
     }
     
     func didFailToLoadDataInvalidApiKeyShow(alert: UIAlertController) {
@@ -75,11 +75,11 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         activityIndicator.startAnimating()
     }
     
-     func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
     }
     
-     func showNetworkError(message: String) {
+    func showNetworkError(message: String) {
         
         let model = AlertModel(title: "Ошибка",
                                message: message,

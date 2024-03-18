@@ -15,10 +15,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private var currentQuestion: QuizQuestion?
     
     private var questionFactory: QuestionFactoryProtocol?
-    private weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewControllerProtocol?
     private let statisticService: StatisticService!
 
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
             self.viewController = viewController
             
             statisticService = StatisticServiceImplementation()
@@ -29,7 +29,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     
      func convert(model: QuizQuestion) -> QuizStepViewModel {
-        QuizStepViewModel(
+       return QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
